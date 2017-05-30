@@ -144,12 +144,17 @@
 
             const hints = g.selectAll('.value-hint').data(yearData, d => d.id + d.year);
         
-            hints.enter()
-                .append('circle')
+            const gs = hints.enter()
+                .append('g')
+                .attr('transform', d => `translate(${x(d.year)}, ${y(d.value)})`)
                 .classed('value-hint', true)
-                .attr('cx', d => x(d.year))
-                .attr('cy', d => y(d.value))
-                .attr('r', 5)
+            
+            gs.append('circle')
+                .attr('r', 5);
+
+            gs.append('text')
+                .text(d => d.value)
+                .attr('dy', '-.35em')
             
             hints.exit().remove();
         })
