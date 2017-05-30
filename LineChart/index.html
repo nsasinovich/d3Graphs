@@ -122,6 +122,7 @@
                     value: d.values[d.values.length - 1]
                 };
             })
+            .classed('label', true)
             .attr("transform", function(d) {
                 return "translate(" + x(d.value.year) + "," + y(d.value.score) + ")";
             })
@@ -131,6 +132,19 @@
             .text(function(d) {
                 return d.id;
             });
+        
+        svg.selectAll('.label').on('mousemove', function () {
+            d3.event.stopPropagation();
+
+            const { id } = d3.select(this).datum();
+            const specialityData = specialties.find(s => s.id === id).values.map(v => {
+                return Object.assign({}, v, { year: +v.year });
+            });
+
+            updateHints(specialityData)
+        });
+
+        let hints;
 
         svg.on('mousemove', () => {
             const year = x.invert(d3.event.clientX);
@@ -138,26 +152,30 @@
 
             const yearData = specialties.map(s => ({
                 id: s.id,
-                value: s.values[index].score,
+                score: s.values[index].score,
                 year: +s.values[index].year
             }));
 
-            const hints = g.selectAll('.value-hint').data(yearData, d => d.id + d.year);
+            updateHints(yearData, d => d.id + d.year);
+        });
+
+        function updateHints(data, selector) {
+            hints = g.selectAll('.value-hint').data(data, d => d.id + d.year);
         
             const gs = hints.enter()
                 .append('g')
-                .attr('transform', d => `translate(${x(d.year)}, ${y(d.value)})`)
+                .attr('transform', d => `translate(${x(d.year)}, ${y(d.score)})`)
                 .classed('value-hint', true)
             
             gs.append('circle')
                 .attr('r', 5);
 
             gs.append('text')
-                .text(d => d.value)
+                .text(d => d.score)
                 .attr('dy', '-.35em')
             
             hints.exit().remove();
-        })
+        }
     });
 
     function type(d, _, columns) {
