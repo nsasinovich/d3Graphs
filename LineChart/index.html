@@ -157,6 +157,19 @@
 
         let hints;
 
+        svg.on('mousemove', () => {
+            const year = x.invert(d3.event.clientX);
+            const index = bisectYear(data, year, 1) - 1;
+
+            const yearData = specialties.map(s => ({
+                id: s.id,
+                score: s.values[index].score,
+                year: +s.values[index].year
+            }));
+
+            updateHints(yearData, d => d.id + d.year);
+        });
+
         function updateHints(data, selector) {
             hints = g.selectAll('.value-hint').data(data, d => d.id + d.year);
 
