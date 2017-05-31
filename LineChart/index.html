@@ -101,7 +101,20 @@
             .attr("fill", "#000")
             .text("score");
 
-        var specialtity = g.selectAll(".specialtity")
+        const linesContainer = g.append('g')
+            .classed('lines-conainer', true);
+
+        linesContainer.append('rect')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('width', width)
+            .attr('height', height)
+            .attr('fill', 'transparent');
+
+        const hintsContainer = g.append('g')
+            .classed('hints-container', true);
+
+        var specialtity = linesContainer.selectAll(".specialtity")
             .data(specialties)
             .enter().append("g")
             .attr("class", "specialtity");
@@ -157,7 +170,7 @@
 
         let hints;
 
-        svg.on('mousemove', () => {
+        linesContainer.on('mousemove', () => {
             const year = x.invert(d3.event.clientX);
             const index = bisectYear(data, year, 1) - 1;
 
@@ -167,11 +180,15 @@
                 year: +s.values[index].year
             }));
 
-            updateHints(yearData, d => d.id + d.year);
+            updateHints(yearData);
+        });
+
+        linesContainer.on('mouseout', () => {
+            updateHints([]);
         });
 
         function updateHints(data, selector) {
-            hints = g.selectAll('.value-hint').data(data, d => d.id + d.year);
+            hints = hintsContainer.selectAll('.value-hint').data(data, d => d.id + d.year);
 
             const gs = hints.enter()
                 .append('g')
