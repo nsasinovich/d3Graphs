@@ -14,7 +14,7 @@
         shape-rendering: crispEdges;
     }
 </style>
-<svg width="1024" height="768"></svg>
+<svg width="850" height="400"></svg>
 <script src="http://d3js.org/d3.v4.min.js"></script>
 <script>
     const maxScore = 360;
@@ -22,7 +22,7 @@
     var svg = d3.select("svg"),
         margin = {
             top: 20,
-            right: 80,
+            right: 330,
             bottom: 30,
             left: 50
         },
@@ -37,7 +37,7 @@
     var bisectYear = d3.bisector(d => d.year).left;
 
     var line = d3.line()
-        .curve(d3.curveMonotoneX)
+        .curve(d3.curveLinear)
         .x(function(d) {
             return x(d.year);
         })
@@ -132,7 +132,18 @@
             .text(function(d) {
                 return d.id;
             });
-        
+
+        svg.selectAll('.line').on('mousemove', function () {
+            d3.event.stopPropagation();
+
+            const { id } = d3.select(this).datum();
+            const specialityData = specialties.find(s => s.id === id).values.map(v => {
+                return Object.assign({}, v, { year: +v.year });
+            });
+
+            updateHints(specialityData)
+        });
+
         svg.selectAll('.label').on('mousemove', function () {
             d3.event.stopPropagation();
 
@@ -146,34 +157,22 @@
 
         let hints;
 
-        svg.on('mousemove', () => {
-            const year = x.invert(d3.event.clientX);
-            const index = bisectYear(data, year, 1) - 1;
-
-            const yearData = specialties.map(s => ({
-                id: s.id,
-                score: s.values[index].score,
-                year: +s.values[index].year
-            }));
-
-            updateHints(yearData, d => d.id + d.year);
-        });
-
         function updateHints(data, selector) {
             hints = g.selectAll('.value-hint').data(data, d => d.id + d.year);
-        
+
             const gs = hints.enter()
                 .append('g')
                 .attr('transform', d => `translate(${x(d.year)}, ${y(d.score)})`)
                 .classed('value-hint', true)
-            
+                .style("font", "14px sans-serif")
+
             gs.append('circle')
-                .attr('r', 5);
+                .attr('r', 3);
 
             gs.append('text')
                 .text(d => d.score)
                 .attr('dy', '-.35em')
-            
+
             hints.exit().remove();
         }
     });
